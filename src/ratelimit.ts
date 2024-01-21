@@ -1,19 +1,19 @@
 import { InMemoryCache, RateLimitCache } from "./cache.ts";
 
 interface RateLimitConfig {
-  timeFrame?: number;
-  limitCount?: number;
+  timeframe?: number;
+  limit?: number;
   cacheProvider?: RateLimitCache;
 }
 
 export class RateLimit {
   #config: {
-    timeFrame: number;
-    limitCount: number;
+    timeframe: number;
+    limit: number;
     cacheProvider: RateLimitCache;
   } = {
-    timeFrame: 1000,
-    limitCount: 50,
+    timeframe: 1000,
+    limit: 50,
     cacheProvider: new InMemoryCache(),
   };
 
@@ -27,9 +27,9 @@ export class RateLimit {
   async limit(id: string): Promise<boolean> {
     const count = await this.#config.cacheProvider.count(
       id,
-      this.#config.timeFrame,
+      this.#config.timeframe,
     );
-    if (count >= this.#config.limitCount) {
+    if (count >= this.#config.limit) {
       return true;
     }
     return false;

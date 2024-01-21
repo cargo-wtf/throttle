@@ -1,7 +1,7 @@
 export interface RateLimitCache {
   count(
     id: string,
-    timeFrame: number,
+    timeframe: number,
   ): Promise<number>;
 }
 
@@ -11,39 +11,39 @@ export class InMemoryCache implements RateLimitCache {
   #cache = new Map<string, RateLimitEntry>();
   #lastReset: number = Date.now();
 
-  count(id: string, timeFrame: number): Promise<number> {
+  count(id: string, timeframe: number): Promise<number> {
     let count = 0;
     const now = Date.now();
 
-    // Get get count entry for the requested id;
+    // Get timestamp count for the requested id;
     const entry = this.#cache.get(id);
 
-    // If count is found
+    // If timestamp count exists find the timestamps in the current timeframe
     if (entry) {
       const timestamps = [
-        ...entry.filter((timestamp) => now - timestamp <= timeFrame),
+        ...entry.filter((timestamp) => now - timestamp <= timeframe),
         now,
       ];
 
-      count = timestamps.length + 1;
-      this.#cache.set(id, [...entry, now]);
+      count = timestamps.length;
+      this.#cache.set(id, timestamps);
     } else {
       this.#cache.set(id, [Date.now()]);
       count = 1;
     }
 
     if (this.#lastReset <= now - 1000) {
-      this.#cleanup(now, timeFrame);
+      this.#cleanup(now, timeframe);
       this.#lastReset = Date.now();
     }
 
     return Promise.resolve(count);
   }
 
-  #cleanup(now: number, timeFrame: number): void {
+  #cleanup(now: number, timeframe: number): void {
     for (const [key, entry] of this.#cache.entries()) {
       const timestamps = entry.filter((timestamp) =>
-        timestamp >= now - timeFrame
+        timestamp >= now - timeframe
       );
       if (timestamps.length) {
         this.#cache.set(key, timestamps);

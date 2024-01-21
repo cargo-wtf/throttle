@@ -9,9 +9,9 @@ type IdProvider = (ctx: RequestContext) => string;
 
 interface ThrottleConfig {
   idProvider: IdProvider;
-  timeFrame?: number;
-  limitCount?: number;
   cacheProvider?: RateLimitCache;
+  timeframe?: number;
+  limit?: number;
 }
 
 export function Throttle(options: ThrottleConfig): Middleware {
@@ -19,6 +19,7 @@ export function Throttle(options: ThrottleConfig): Middleware {
   return async (ctx: RequestContext, next: Next) => {
     const block = await rateLimiter.limit(options.idProvider(ctx));
     if (block) {
+      // TODO: Change to proper http status (`HttpsStatus.TOO_MANY_REQUEST`) as soon cargo core is updated.
       throw new HttpException("Too many request", HttpStatus.BAD_REQUEST);
     }
     return next(ctx);
